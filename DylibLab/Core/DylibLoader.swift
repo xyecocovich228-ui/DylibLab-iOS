@@ -56,7 +56,8 @@ final class DylibLoader {
         case .success(let info):
             Logger.shared.log(.info, tag: tag, "Момент 2/5 · \(info.rawDescription) · размер \(info.fileSize)")
             if !info.archs.contains("arm64") {
-                Logger.shared.log(.err, tag: tag, "Момент 2/5 ✕ НЕ ТА АРХИТЕКТУРА (\(info.archs.joined(separator: ","))). Почему: dylib собран для симулятора (x86_64) или для Mac. На iPhone нужен arm64. Решение: пересобери dylib с -arch arm64 / Xcode destination = iPhone (не Simulator). Дальше dlopen не пробуем — бессмысленно.")
+                let archList = info.archs.joined(separator: ",")
+                Logger.shared.log(.err, tag: tag, "Момент 2/5. НЕ ТА АРХИТЕКТУРА (" + archList + "). Почему: dylib собран для симулятора (x86_64) или для Mac. На iPhone нужен arm64. Решение: пересобери dylib с -arch arm64. Дальше dlopen не пробуем.")
                 return
             }
             if !info.looksLikeDylib {
@@ -72,7 +73,9 @@ final class DylibLoader {
         // --- 3. Подпись (важно для нон-джейл) ---
         Logger.shared.log(.info, tag: tag, "Момент 3/5 · проверка окружения подписи…")
         let jb = JailbreakCheck.isJailbroken()
-        Logger.shared.log(.info, tag: tag, "Момент 3/5 · джейлбрейк: \(jb ? "ДА" : "НЕТ") · bundle: \(Bundle.main.bundleIdentifier ?? "?")")
+        let bid = Bundle.main.bundleIdentifier ?? "unknown"
+        let jbText = jb ? "ДА" : "НЕТ"
+        Logger.shared.log(.info, tag: tag, "Момент 3/5 · джейлбрейк: " + jbText + " bundle: " + bid)
         if !jb {
             Logger.shared.log(.warn, tag: tag, "Момент 3/5 ⚠ Без джейла iOS требует ПОДПИСЬ dylib тем же сертификатом что и приложение. Unsigned dylib упадёт с 'code signature invalid'. Решения: (а) подписать dylib через codesign тем же Team ID, (б) встроить dylib в приложение через Xcode (Embed & Sign) и пересобрать IPA, (в) ставить через TrollStore.")
         } else {
@@ -172,7 +175,8 @@ final class DylibLoader {
         if found.isEmpty {
             Logger.shared.log(.info, tag: "SYM", "\(name): известных entry-символов не найдено — нормально, меню может стартовать через constructor (__attribute__((constructor))). Ждём окно…")
         } else {
-            Logger.shared.log(.ok, tag: "SYM", "\(name): найдены символы: \(found.joined(separator: ", ")) — можно вызывать из тестовой кнопки")
+            let symList = found.joined(separator: ", ")
+            Logger.shared.log(.ok, tag: "SYM", name + ": найдены символы: " + symList)
         }
     }
 
@@ -184,7 +188,8 @@ final class DylibLoader {
             if fresh.isEmpty {
                 Logger.shared.log(.warn, tag: "OVERLAY", "Момент 5/5 ⚠ новых UIWindow НЕ появилось. Это НЕ обязательно ошибка: меню может (а) рисоваться внутри существующего окна, (б) ждать тапа/шейка, (в) крашнуться молча — смотри краш-лог. Нажми «Тест оверлея» чтобы проверить что UIWindow поверх вообще работает.")
             } else {
-                Logger.shared.log(.ok, tag: "OVERLAY", "Момент 5/5 ✓ меню создало окна: \(fresh.joined(separator: ", ")) — меню ЖИВО. Если его не видно: проверь hidden/alpha/frame и уровень windowLevel.")
+                let freshList = fresh.joined(separator: ", ")
+                Logger.shared.log(.ok, tag: "OVERLAY", "Момент 5/5. Меню создало окна: " + freshList)
             }
         }
     }

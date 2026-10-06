@@ -119,7 +119,13 @@ class LogsViewController: UIViewController {
 
     @objc private func copyTapped() {
         UIPasteboard.general.string = Logger.shared.fullText(levels: activeLevels)
-        Logger.shared.log(.ok, tag: "LOG", "Лог скопирован в буфер (\(activeLevels.isEmpty ? "все уровни" : activeLevels.map { $0.rawValue }.joined(separator: ",")))")
+        let lvlText: String
+        if activeLevels.isEmpty {
+            lvlText = "все уровни"
+        } else {
+            lvlText = activeLevels.map { $0.rawValue }.joined(separator: ",")
+        }
+        Logger.shared.log(.ok, tag: "LOG", "Лог скопирован в буфер (" + lvlText + ")")
     }
 
     @objc private func shareTapped() {

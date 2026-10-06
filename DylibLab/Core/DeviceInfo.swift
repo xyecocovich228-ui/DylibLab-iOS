@@ -4,21 +4,32 @@ import UIKit
 enum DeviceInfo {
     static func summary() -> String {
         let dev = UIDevice.current
-        return "iOS \(dev.systemVersion) · \(dev.model) · \(dev.name) · bundle \(Bundle.main.bundleIdentifier ?? "?") v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?")"
+        let bid = Bundle.main.bundleIdentifier ?? "unknown"
+        let ver = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+        return "iOS " + dev.systemVersion + " " + dev.model + " " + dev.name + " bundle " + bid + " v" + ver
     }
 
     static func detailed() -> String {
         let dev = UIDevice.current
         let screen = UIScreen.main.bounds
         var lines: [String] = []
-        lines.append("Устройство: \(dev.name) (\(dev.model))")
-        lines.append("Система: \(dev.systemName) \(dev.systemVersion)")
-        lines.append("Экран: \(Int(screen.width))x\(Int(screen.height)) scale \(UIScreen.main.scale)")
-        lines.append("Ориентация: \(screen.width > screen.height ? "landscape ✓" : "portrait (стенд требует landscape)")")
-        lines.append("Bundle: \(Bundle.main.bundleIdentifier ?? "?")")
-        lines.append("Документы: \(DylibStore.documentsDir().path)")
-        lines.append("Dylibs: \(DylibStore.dylibsDir().path)")
-        lines.append("Jailbreak: \(JailbreakCheck.isJailbroken() ? "ДА (можно инжектить unsigned)" : "НЕТ (нужна подпись для dlopen)")")
+        lines.append("Устройство: " + dev.name + " (" + dev.model + ")")
+        lines.append("Система: " + dev.systemName + " " + dev.systemVersion)
+        lines.append("Экран: " + String(Int(screen.width)) + "x" + String(Int(screen.height)) + " scale " + String(describing: UIScreen.main.scale))
+        if screen.width > screen.height {
+            lines.append("Ориентация: landscape OK")
+        } else {
+            lines.append("Ориентация: portrait - поверни девайс")
+        }
+        let bid = Bundle.main.bundleIdentifier ?? "unknown"
+        lines.append("Bundle: " + bid)
+        lines.append("Документы: " + DylibStore.documentsDir().path)
+        lines.append("Dylibs: " + DylibStore.dylibsDir().path)
+        if JailbreakCheck.isJailbroken() {
+            lines.append("Jailbreak: ДА")
+        } else {
+            lines.append("Jailbreak: НЕТ (нужна подпись для dlopen)")
+        }
         return lines.joined(separator: "\n")
     }
 }

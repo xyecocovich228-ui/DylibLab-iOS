@@ -101,12 +101,22 @@ final class OverlayHost: NSObject {
     static func compatibilityReport() -> String {
         var r: [String] = []
         let screen = UIScreen.main.bounds
-        r.append(screen.width > screen.height ? "✓ Landscape: \(Int(screen.width))x\(Int(screen.height))" : "✕ Portrait — поверни девайс! Стенд работает в landscape")
-        r.append(UIApplication.shared.connectedScenes.first is UIWindowScene ? "✓ UIWindowScene активна" : "✕ нет сцены")
-        r.append("✓ KeyWindow: \(UIApplication.shared.windows.first(where: { $0.isKeyWindow }) != nil ? "есть" : "НЕТ — странно")")
-        r.append("✓ Окон всего: \(UIApplication.shared.windows.count)")
-        r.append("✓ Загружено dylib: \(DylibLoader.shared.loadedURLs.count)")
-        r.append("✓ Документы доступны: \(FileManager.default.fileExists(atPath: DylibStore.documentsDir().path) ? "да" : "нет")")
+        if screen.width > screen.height {
+            r.append("Landscape OK: " + String(Int(screen.width)) + "x" + String(Int(screen.height)))
+        } else {
+            r.append("Portrait - поверни девайс! Стенд работает в landscape")
+        }
+        let hasScene = UIApplication.shared.connectedScenes.first is UIWindowScene
+        r.append(hasScene ? "UIWindowScene активна OK" : "нет сцены FAIL")
+        let allWindows = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+        let hasKey = allWindows.contains(where: { $0.isKeyWindow })
+        r.append("KeyWindow: " + (hasKey ? "есть" : "НЕТ - странно"))
+        r.append("Окон всего: " + String(allWindows.count))
+        r.append("Загружено dylib: " + String(DylibLoader.shared.loadedURLs.count))
+        let docsOK = FileManager.default.fileExists(atPath: DylibStore.documentsDir().path)
+        r.append("Документы доступны: " + (docsOK ? "да" : "нет"))
         return r.joined(separator: "\n")
     }
 }

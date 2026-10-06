@@ -199,7 +199,8 @@ class HarnessViewController: UIViewController {
 
     @objc private func autoSwitch(_ s: UISwitch) {
         UserDefaults.standard.set(s.isOn, forKey: "autload_on_start")
-        Logger.shared.log(.info, tag: "UI", "Автозагрузка \(s.isOn ? "ВКЛ" : "ВЫКЛ")")
+        let t = s.isOn ? "ВКЛ" : "ВЫКЛ"
+        Logger.shared.log(.info, tag: "UI", "Автозагрузка " + t)
     }
 
     private func toast(_ msg: String) {

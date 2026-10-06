@@ -53,7 +53,7 @@ final class Logger {
             if let data = (e.line() + "\n").data(using: .utf8) {
                 if FileManager.default.fileExists(atPath: self.logFileURL.path) {
                     if let h = try? FileHandle(forWritingTo: self.logFileURL) {
-                        try? h.seekToEnd()
+                        _ = try? h.seekToEnd()
                         try? h.write(contentsOf: data)
                         try? h.close()
                     }

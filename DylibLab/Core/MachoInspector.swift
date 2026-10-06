@@ -82,10 +82,12 @@ enum MachoInspector {
                 archs.append(cpuName(raw))
             }
             let hasArm64 = archs.contains("arm64")
+            let list = archs.joined(separator: ",")
+            let armMsg = hasArm64 ? "arm64 есть" : "arm64 НЕТ - на девайсе не запустится"
             return .success(MachoInfo(
                 fileName: url.lastPathComponent, fileSize: size, archs: archs,
                 isFat: true, looksLikeDylib: true,
-                rawDescription: "FAT Mach-O (\(archs.joined(separator: ","))) \(hasArm64 ? "· arm64 есть ✓" : "· arm64 НЕТ — на девайсе не запустится")))
+                rawDescription: "FAT Mach-O (" + list + ") " + armMsg))
         }
 
         // Thin Mach-O
@@ -101,10 +103,18 @@ enum MachoInspector {
             // MH_DYLIB = 0x6, MH_BUNDLE = 0x8
             let isDylib = (filetype == 0x6 || filetype == 0x8)
             let arch = cpuName(cputype)
+            let ftText: String
+            if filetype == 0x6 {
+                ftText = "DYLIB ok"
+            } else if filetype == 0x8 {
+                ftText = "BUNDLE (тоже грузится)"
+            } else {
+                ftText = "type " + String(filetype) + " - НЕ dylib"
+            }
             return .success(MachoInfo(
                 fileName: url.lastPathComponent, fileSize: size, archs: [arch],
                 isFat: false, looksLikeDylib: isDylib,
-                rawDescription: "Mach-O 64-bit · arch=\(arch) · filetype=\(filetype == 0x6 ? "DYLIB ✓" : filetype == 0x8 ? "BUNDLE (тоже грузится)" : "\(filetype) — НЕ dylib!")"))
+                rawDescription: "Mach-O 64-bit arch=" + arch + " filetype=" + ftText))
         }
         return .failure(.unknownMagic(magic))
     }
