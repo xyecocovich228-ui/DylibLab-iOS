@@ -47,6 +47,14 @@ jobs:
           rm -rf Payload DylibLab-unsigned.ipa
           mkdir -p Payload
           cp -R "$APP" Payload/
+          APPNAME=$(basename "$APP")
+          # Встройка dylib из Inject/ чтобы Sideloadly подписал всё одним сертом
+          if ls Inject/*.dylib 1>/dev/null 2>&1; then
+            mkdir -p "Payload/$APPNAME/Frameworks"
+            cp -v Inject/*.dylib "Payload/$APPNAME/Frameworks/"
+          else
+            echo "Inject/*.dylib нет — пропускаю встройку"
+          fi
           zip -r DylibLab-unsigned.ipa Payload
           ls -lh DylibLab-unsigned.ipa
           # Инфо для лога
