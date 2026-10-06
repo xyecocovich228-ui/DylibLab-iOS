@@ -111,6 +111,11 @@ class HarnessViewController: UIViewController {
         row3.addArrangedSubview(makeButton("↻ Обновить", color: .systemGray, action: #selector(refreshTapped)))
         row3.addArrangedSubview(makeButton("☰ Окна: в лог", color: .systemPurple, action: #selector(dumpWindowsTapped)))
         stack.addArrangedSubview(row3)
+
+        let row4 = UIStackView()
+        row4.axis = .horizontal; row4.spacing = 8; row4.distribution = .fillEqually
+        row4.addArrangedSubview(makeButton("📦 Загрузить встроенные (Frameworks)", color: .systemBrown, action: #selector(loadBundledTapped)))
+        stack.addArrangedSubview(row4)
     }
 
     private func card(title: String, body: UILabel) -> UIView {
@@ -175,6 +180,17 @@ class HarnessViewController: UIViewController {
 
     @objc private func unloadTapped() {
         DylibLoader.shared.unloadAll()
+        refresh()
+    }
+
+    @objc private func loadBundledTapped() {
+        let bundled = DylibStore.listCandidates().filter { !$0.path.contains("Documents") }
+        if bundled.isEmpty {
+            Logger.shared.log(.warn, tag: "UI", "Встроенных dylib нет. Положи файлы в Inject/*.dylib в репо, дождись сборки и переустанови IPA — либо вшей dylib в Frameworks вручную на ПК перед подписью.")
+            return
+        }
+        Logger.shared.log(.info, tag: "UI", "Встроенные: найдено " + String(bundled.count) + " — гружу из bundle (подпись совпадает с приложением)")
+        for u in bundled { DylibLoader.shared.load(url: u) }
         refresh()
     }
 
